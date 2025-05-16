@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import GamePage from './pages/GamePage';
-import LoginPage from './pages/LoginPage';
-import ScoreboardPage from './pages/ScoreboardPage';
-import ProfilePage from './pages/ProfilePage';
+import GamePage from './page/GamePage';
+import LoginPage from './page/LoginPage';
+import ScoreboardPage from './page/ScoreboardPage';
+import ProfilePage from './page/ProfilePage';
 import Navbar from './components/Navbar';
 
 const App = () => {

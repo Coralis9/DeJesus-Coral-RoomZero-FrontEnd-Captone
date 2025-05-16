@@ -1,80 +1,87 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from "axios";
 
-const LoginPage = ({ onLogin }) => {
-  const [mode, setMode] = useState('login');
-  const [form, setForm] = useState({ username: '', email: '', password: '' });
+function LoginPage({ onLogin }) {
+  const [mode, setMode] = useState('login'); 
+  const [formData, setFormData] = useState({ username: '', email: '', password: '' });
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const users = JSON.parse(localStorage.getItem('users')) || [];
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (mode === 'login') {
-      const user = users.find(
-        u => u.username === form.username && u.password === form.password
-      );
-      if (user) {
-        onLogin(user);
-        navigate('/game');
-      } else {
-        alert('Invalid login');
-      }
-    } else {
-      if (users.find(u => u.username === form.username)) {
-        alert('Username already exists');
-        return;
-      }
-      const newUser = { ...form, bestScore: 0, bestTime: 0, gamesPlayed: 0, wins: 0 };
-      const updatedUsers = [...users, newUser];
-      localStorage.setItem('users', JSON.stringify(updatedUsers));
-      onLogin(newUser);
+    const endpoint = mode === 'login' ? '/login' : '/register';
+    try {
+      const res = await axios.post(`http://localhost:3000${endpoint}`, formData);
+      onLogin(res.data.user || res.data); // adjust based on backend
       navigate('/game');
+    } catch (err) {
+      setError(err.response?.data?.message || 'An error occurred.');
     }
   };
 
   return (
-    <div className="p-4 max-w-md mx-auto mt-10 text-white">
-      <h2 className="text-2xl mb-4">{mode === 'login' ? 'Login' : 'Register'}</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="text"
-          placeholder="Username"
-          value={form.username}
-          onChange={(e) => setForm({ ...form, username: e.target.value })}
-          required
-          className="w-full p-2 rounded bg-gray-800"
-        />
-        {mode === 'register' && (
-          <input
-            type="email"
-            placeholder="Email"
-            value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
-            required
-            className="w-full p-2 rounded bg-gray-800"
-          />
-        )}
-        <input
-          type="password"
-          placeholder="Password"
-          value={form.password}
-          onChange={(e) => setForm({ ...form, password: e.target.value })}
-          required
-          className="w-full p-2 rounded bg-gray-800"
-        />
-        <button type="submit" className="bg-purple-800 w-full py-2 rounded hover:bg-purple-700">
-          {mode === 'login' ? 'Log In' : 'Register'}
+    <div className="d-flex vh-100 justify-content-center align-items-center bg-dark text-light">
+      <div className="card p-4 shadow" style={{ minWidth: "300px" }}>
+        <h3 className="mb-3 text-center">{mode === 'login' ? 'Login' : 'Register'}</h3>
+        {error && <div className="alert alert-danger">{error}</div>}
+        <form onSubmit={handleSubmit}>
+          <div className="mb-3">
+            <label className="form-label">Username</label>
+            <input
+              type="text"
+              name="username"
+              className="form-control"
+              value={formData.username}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          {mode === 'register' && (
+            <div className="mb-3">
+              <label className="form-label">Email</label>
+              <input
+                type="email"
+                name="email"
+                className="form-control"
+                value={formData.email}
+                onChange={handleChange}
+                required
+              />
+            </div>
+          )}
+
+          <div className="mb-3">
+            <label className="form-label">Password</label>
+            <input
+              type="password"
+              name="password"
+              className="form-control"
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <button type="submit" className="btn btn-primary w-100">
+            {mode === 'login' ? 'Log In' : 'Register'}
+          </button>
+        </form>
+
+        <button
+          className="btn btn-link mt-3 text-center"
+          onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
+        >
+          {mode === 'login' ? 'Need to register?' : 'Already have an account?'}
         </button>
-      </form>
-      <button
-        onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
-        className="mt-4 text-sm underline text-purple-400"
-      >
-        {mode === 'login' ? 'Need to register?' : 'Already have an account?'}
-      </button>
+      </div>
     </div>
   );
-};
+}
 
 export default LoginPage;
